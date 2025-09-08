@@ -1,0 +1,128 @@
+import ctypes
+import numpy as np
+import os
+
+from Bindings_ArrayChecks import *
+
+# Load the shared library
+if os.name == "nt":  # Windows
+    dll_name = "Recon.dll"
+    dllabspath = os.path.dirname(os.path.abspath(__file__)) + os.path.sep + dll_name
+    SART_lib = ctypes.CDLL(dllabspath, winmode=0)
+elif os.name == "posix":  # Linux / macOS
+    SART_lib = ctypes.CDLL("./Recon.so")  # Use .dylib for macOS
+#
+# # Load the shared library
+# if os.name == "nt":  # Windows
+#     SART_lib = ctypes.CDLL("./SART.dll")
+# elif os.name == "posix":  # Linux / macOS
+#     SART_lib = ctypes.CDLL("./libSART.so")  # Use .dylib for macOS
+
+# Define argument types and return type for the SART function
+SART_lib.SART.argtypes = [
+    ctypes.c_int,  # L
+    ctypes.c_int,  # M
+    ctypes.c_int,  # N
+    ctypes.POINTER(ctypes.c_double),
+    ctypes.POINTER(ctypes.c_double),
+    ctypes.POINTER(ctypes.c_double),
+    ctypes.c_int   # ITERS
+]
+SART_lib.SART.restype = None  # Function returns void
+
+SART_lib.SARTf.argtypes = [
+    ctypes.c_int,  # L
+    ctypes.c_int,  # M
+    ctypes.c_int,  # N
+    ctypes.POINTER(ctypes.c_float),
+    ctypes.POINTER(ctypes.c_float),
+    ctypes.POINTER(ctypes.c_float),
+    ctypes.c_int   # ITERS
+]
+SART_lib.SARTf.restype = None  # Function returns void
+
+
+def SART_cpp(Vol, PSF, IMG, ITERS):
+    """
+    Wrapper around the SART function for type checking, validation, and alignment checking.
+
+    Args:
+        Vol (np.ndarray): LxMxN array of Volume Intensity Guess.
+        PSF (np.ndarray): LxMxN array of PSFs.
+        IMG (np.ndarray): MxN array of Observed Intensity.
+        ITERS (int): Number of SART iterations.
+
+    Raises:
+        ValueError: If the input arrays do not match expected shapes, types, or alignment.
+        TypeError: If any of the input arguments are not of the correct type.
+    """
+
+    L, M, N = Vol.shape
+
+    # Check types of L, M, N, and ITERS
+    if not all(isinstance(x, int) for x in [L, M, N, ITERS]):
+        raise TypeError("L, M, N, and ITERS must be integers.")
+
+    # Validate Vol, PSF, and IMG arrays
+    validate_array(Vol, (L, M, N), "Vol")
+    validate_array(PSF, (L, M, N), "PSF")
+    validate_array(IMG, (M, N), "IMG")
+
+    Vol = Vol.ravel()
+    PSF = PSF.ravel()
+    IMG = IMG.ravel()
+    
+    Vol_ptr = Vol.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
+    PSF_ptr = PSF.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
+    IMG_ptr = IMG.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
+
+    # Call the C++ SART function
+    SART_lib.SART(L, M, N, Vol_ptr, PSF_ptr, IMG_ptr, ITERS)
+
+    # Example of post-processing or additional steps if needed
+    print("SART function executed successfully.")
+    
+    return Vol, PSF, IMG, ITERS
+
+
+def SARTf_cpp(Vol, PSF, IMG, ITERS):
+    """
+    Wrapper around the SART function for type checking, validation, and alignment checking.
+
+    Args:
+        Vol (np.ndarray): LxMxN array of Volume Intensity Guess.
+        PSF (np.ndarray): LxMxN array of PSFs.
+        IMG (np.ndarray): MxN array of Observed Intensity.
+        ITERS (int): Number of SART iterations.
+
+    Raises:
+        ValueError: If the input arrays do not match expected shapes, types, or alignment.
+        TypeError: If any of the input arguments are not of the correct type.
+    """
+
+    L, M, N = Vol.shape
+
+    # Check types of L, M, N, and ITERS
+    if not all(isinstance(x, int) for x in [L, M, N, ITERS]):
+        raise TypeError("L, M, N, and ITERS must be integers.")
+
+    # Validate Vol, PSF, and IMG arrays
+    validate_array(Vol, (L, M, N), "Vol", expected_dtype=np.float32)
+    validate_array(PSF, (L, M, N), "PSF", expected_dtype=np.float32)
+    validate_array(IMG, (M, N), "IMG", expected_dtype=np.float32)
+
+    Vol = Vol.ravel()
+    PSF = PSF.ravel()
+    IMG = IMG.ravel()
+    
+    Vol_ptr = Vol.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
+    PSF_ptr = PSF.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
+    IMG_ptr = IMG.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
+
+    # Call the C++ SART function
+    SART_lib.SARTf(L, M, N, Vol_ptr, PSF_ptr, IMG_ptr, ITERS)
+
+    # Example of post-processing or additional steps if needed
+    print("SART function executed successfully.")
+    
+    return Vol, PSF, IMG, ITERS
