@@ -28,6 +28,10 @@ void SMART(
     fftw_import_wisdom_from_filename("fftw_wisdom.dat");
 
     int ImgSize = M*N;
+
+    // FTs with the FFTW library are unnormalized
+    // This isn't an issue for the RLD implementation. The forward and backward cancel
+    // That is not the case here, and these normalization factors are needed
     double ImgSizeinv2 = (1 / static_cast<double>(ImgSize));//*(1 / static_cast<double>(ImgSize));
     double ImgSizeinvlog = std::log2(1 / static_cast<double>(ImgSize));
 
