@@ -126,17 +126,3 @@ def SMARTf_cpp(Vol, PSF, IMG, ITERS):
     
     return Vol, PSF, IMG, ITERS
 
-
-def np_empty_16byteAligned(shape, dtype):
-    # https://stackoverflow.com/questions/9895787/memory-alignment-for-fast-fft-in-python-using-shared-arrays
-
-    size = 1
-    for dim in shape:
-        size *= dim
-
-    dtype = np.dtype(dtype)
-    nbytes = size * dtype.itemsize
-    buf = np.empty(nbytes + 16, dtype=np.uint8)
-    start_index = -buf.ctypes.data % 16
-    return buf[start_index:start_index + nbytes].view(dtype).reshape(shape)
-

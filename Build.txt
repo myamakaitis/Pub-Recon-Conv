@@ -1,3 +1,7 @@
+// COMPILER_PATH\g++.exe -shared -fPIC -fdiagnostics-color=always -g RLD.cpp SMART.cpp SART.cpp Project.cpp PlanCreate.cpp 
+//                               IterOps.cpp IterOpsSIMD.cpp PSF.cpp -o OUTPUTPATH/Recon.dll 
+//                               -I(LIBRARYPATH)/fftw-3.3.5-dll64 -L(LIBRARYPATH)/fftw-3.3.5-dll64 -lfftw3-3 -lfftw3f-3 -O3 -mavx2 -fopenmp
+
 {
     "tasks": [
         {
@@ -12,8 +16,8 @@
                 "RLD.cpp", "SMART.cpp", "SART.cpp", "Project.cpp", "PlanCreate.cpp", "IterOps.cpp", "IterOpsSIMD.cpp", "PSF.cpp",
                 "-o",
                 "${fileDirname}\\Recon.dll",
-                "-IC:/fftw-3.3.5-dll64",
-                "-LC:/fftw-3.3.5-dll64",
+                "-IC:/fftw-3.3.5-dll64", // Path to FFTW LIBRARY
+                "-LC:/fftw-3.3.5-dll64", // PATH to FFTW Library
                 "-lfftw3-3",
                 "-lfftw3f-3",
                 "-O3",
